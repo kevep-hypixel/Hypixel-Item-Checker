@@ -1,116 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SkyBlock Items – Name & Rarity</title>
+  <meta charset="utf-8" />
+  <title>Hypixel SkyBlock Items</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    :root {
+      --card-bg: #1e1e1e;
+      --page-bg: #111;
+      --text: #eee;
+      --muted: #999;
+      --row-w: 1000px;
+    }
+    * { box-sizing: border-box; }
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f4f4f4;
+      margin: 0;
+      background: var(--page-bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
     }
-    h1 {
-      margin-bottom: 10px;
+    header { padding: 20px; text-align: center; }
+    h1 { margin: 0 0 10px; font-size: 24px; }
+    .controls {
+      width: min(95%, var(--row-w));
+      margin: 0 auto 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
-    #search {
-      width: 100%;
-      padding: 8px 12px;
-      margin-bottom: 20px;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+    input, select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #2c2c2c;
+      background: #151515;
+      color: var(--text);
+      min-width: 220px;
+      outline: none;
     }
-    .item-row {
+    #itemsCount { text-align: center; color: var(--muted); margin-bottom: 8px; }
+    #items { padding-bottom: 40px; }
+    .item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 12px;
-      margin: 4px 0;
-      background: #fff;
-      border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin: 6px auto;
+      padding: 10px 14px;
+      width: min(95%, var(--row-w));
+      background: var(--card-bg);
+      border-radius: 10px;
+      border: 1px solid #2a2a2a;
     }
-    .item-name {
-      flex: 1;
-      font-weight: bold;
-    }
-    .item-rarity {
-      width: 120px;
+    .name { flex: 1; text-align: left; font-weight: 600; word-break: break-word; }
+    .rarity {
+      width: 160px;
       text-align: center;
-      padding: 4px 8px;
-      border-radius: 3px;
-      color: #fff;
-      font-size: 0.9em;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
     }
-    /* Rarity color classes */
-    .COMMON { background: #9e9e9e; }
-    .UNCOMMON { background: #1eff00; }
-    .RARE { background: #0070dd; }
-    .EPIC { background: #a335ee; }
-    .LEGENDARY { background: #ff8000; }
-    .SPECIAL { background: #e6cc80; }
-    .UNKNOWN { background: #666; }
+
+    /* Hypixel rarity colors */
+    .COMMON       { background-color: #FFFFFF; color: #000; }
+    .UNCOMMON     { background-color: #55FF55; color: #000; }
+    .RARE         { background-color: #5555FF; color: #FFF; }
+    .EPIC         { background-color: #AA00AA; color: #FFF; }
+    .LEGENDARY    { background-color: #FFAA00; color: #000; }
+    .MYTHIC       { background-color: #FF55FF; color: #000; }
+    .DIVINE       { background-color: #55FFFF; color: #000; }
+    .SPECIAL      { background-color: #FF5555; color: #000; }
+    .VERY_SPECIAL { background-color: #FF5555; color: #000; } /* same as SPECIAL */
+    .ULTIMATE     { background-color: #00AAAA; color: #FFF; }
+    .ADMIN        { background-color: #FF0000; color: #FFF; }
+    .UNKNOWN,
+    .UNOBTAINABLE { background-color: #444;    color: #FFF; } /* plain gray */
   </style>
 </head>
 <body>
-  <h1>SkyBlock Items</h1>
-  <input type="text" id="search" placeholder="Search items by name...">
-  <div id="items-container">Loading items...</div>
+  <header>
+    <h1>Hypixel SkyBlock Items</h1>
+
+    <div class="controls">
+      <input id="search" type="text" placeholder="Search by name (type letters anywhere)..." />
+      <select id="rarityFilter" title="Filter by rarity">
+        <option value="">All Rarities</option>
+        <option value="COMMON">Common</option>
+        <option value="UNCOMMON">Uncommon</option>
+        <option value="RARE">Rare</option>
+        <option value="EPIC">Epic</option>
+        <option value="LEGENDARY">Legendary</option>
+        <option value="MYTHIC">Mythic</option>
+        <option value="DIVINE">Divine</option>
+        <option value="SPECIAL">Special</option>
+        <option value="VERY_SPECIAL">Very Special</option>
+        <option value="ULTIMATE">Ultimate</option>
+        <option value="ADMIN">Admin</option>
+        <option value="UNOBTAINABLE">Unobtainable</option>
+        <option value="UNKNOWN">Unknown</option>
+      </select>
+      <select id="sortBy" title="Sort items">
+        <option value="none">Sort: None</option>
+        <option value="rarity_asc">Sort by Rarity ↑</option>
+        <option value="rarity_desc">Sort by Rarity ↓</option>
+        <option value="name_az">Sort by Name A→Z</option>
+        <option value="name_za">Sort by Name Z→A</option>
+      </select>
+    </div>
+
+    <div id="itemsCount">Loading items...</div>
+  </header>
+
+  <div id="items" aria-live="polite"></div>
 
   <script>
-    let allRows = []; // store rows for filtering
+    // explicit rarity order for sorting
+    const RARITY_ORDER = {
+      COMMON: 0, UNCOMMON: 1, RARE: 2, EPIC: 3, LEGENDARY: 4,
+      MYTHIC: 5, DIVINE: 6, SPECIAL: 7, VERY_SPECIAL: 8,
+      ULTIMATE: 9, ADMIN: 10, UNOBTAINABLE: 11, UNKNOWN: 99
+    };
 
-    async function fetchAndDisplayItems() {
-      const container = document.getElementById('items-container');
-      container.textContent = ''; // clear loading text
-
-      try {
-        const response = await fetch('https://api.hypixel.net/resources/skyblock/items');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        const items = data.items || [];
-
-        if (!items.length) {
-          container.textContent = 'No items found.';
-          return;
-        }
-
-        items.forEach(item => {
-          const row = document.createElement('div');
-          row.className = 'item-row';
-
-          const nameDiv = document.createElement('div');
-          nameDiv.className = 'item-name';
-          nameDiv.textContent = item.name || item.id || 'Unknown';
-
-          const rarityDiv = document.createElement('div');
-          rarityDiv.className = 'item-rarity';
-          const tier = item.tier || item.rarity || 'UNKNOWN';
-          rarityDiv.textContent = tier;
-          rarityDiv.classList.add(tier);
-
-          row.appendChild(nameDiv);
-          row.appendChild(rarityDiv);
-          container.appendChild(row);
-
-          allRows.push({ row, name: nameDiv.textContent.toLowerCase() });
-        });
-      } catch (err) {
-        console.error(err);
-        container.textContent = `Error fetching items: ${err.message}`;
-      }
+    // strip all formatting codes: §a style and %%green%% style
+    function stripFormatting(text) {
+      return typeof text === "string"
+        ? text
+            .replace(/§./g, "")         // remove Minecraft codes
+            .replace(/%%.*?%%/g, "")    // remove %%color%% tokens
+            .trim()
+        : text;
     }
 
-    // Search functionality
-    document.getElementById('search').addEventListener('input', e => {
-      const query = e.target.value.toLowerCase();
-      allRows.forEach(({ row, name }) => {
-        row.style.display = name.includes(query) ? 'flex' : 'none';
-      });
-    });
+    // normalize tier: clean then uppercase and replace spaces/dashes with underscores
+    function normalizeTier(tier) {
+      const cleaned = stripFormatting(tier || "UNKNOWN");
+      return String(cleaned).toUpperCase().replace(/[\s-]+/g, "_");
+    }
 
-    fetchAndDisplayItems();
+    // safe name: try various fields and strip formatting
+    function safeName(item) {
+      const raw = item && (item.name || item.display_name || item.item_name || item.id) || "Unknown";
+      return stripFormatting(String(raw));
+    }
+
+    // fetch items — supports data.items as array OR object
+    async function fetchItems() {
+      const res = await fetch("https://api.hypixel.net/resources/skyblock/items");
+      if (!res.ok) throw new Error("Failed to fetch items: " + res.status);
+      const data = await res.json();
+      let itemsRaw = data.items ?? [];
+      if (!Array.isArray(itemsRaw) && typeof itemsRaw === "object") {
+        itemsRaw = Object.values(itemsRaw);
+      }
+      return (itemsRaw || []).map(it => ({
+        ...it,
+        _name: safeName(it),
+        _tier: normalizeTier(it.tier || it.rarity || it.tier_name),
+      }));
+    }
+
+    // render list of items
+    function renderItems(items) {
+      const container = document.getElementById("items");
+      container.innerHTML = "";
+      const frag = document.createDocumentFragment();
+
+      items.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "item";
+        const rarityClass = item._tier || "UNKNOWN";
+        // display readable rarity (replace underscores with spaces)
+        const displayRarity = (rarityClass === "UNKNOWN") ? "UNKNOWN" : rarityClass.replace(/_/g, " ");
+        row.innerHTML = `
+          <div class="name">${escapeHtml(item._name)}</div>
+          <div class="rarity ${escapeHtml(rarityClass)}">${escapeHtml(displayRarity)}</div>
+        `;
+        frag.appendChild(row);
+      });
+
+      container.appendChild(frag);
+      document.getElementById("itemsCount").textContent =
+        `${items.length.toLocaleString()} item(s) shown`;
+    }
+
+    // simple text escape for safety
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    // apply filter and sort then render
+    function applyFiltersAndSort() {
+      const q = document.getElementById("search").value.trim().toLowerCase();
+      const rarityFilter = document.getElementById("rarityFilter").value;
+      const sort = document.getElementById("sortBy").value;
+
+      let list = ALL_ITEMS.filter(it => {
+        const nameOk = !q || it._name.toLowerCase().includes(q);
+        const rarityOk = !rarityFilter || it._tier === rarityFilter;
+        return nameOk && rarityOk;
+      });
+
+      if (sort === "name_az") {
+        list.sort((a,b) => a._name.localeCompare(b._name));
+      } else if (sort === "name_za") {
+        list.sort((a,b) => b._name.localeCompare(a._name));
+      } else if (sort === "rarity_asc") {
+        list.sort((a,b) => (RARITY_ORDER[a._tier] ?? 99) - (RARITY_ORDER[b._tier] ?? 99) || a._name.localeCompare(b._name));
+      } else if (sort === "rarity_desc") {
+        list.sort((a,b) => (RARITY_ORDER[b._tier] ?? 99) - (RARITY_ORDER[a._tier] ?? 99) || a._name.localeCompare(b._name));
+      }
+
+      renderItems(list);
+    }
+
+    // bootstrap
+    let ALL_ITEMS = [];
+
+    async function init() {
+      try {
+        document.getElementById("itemsCount").textContent = "Loading items...";
+        ALL_ITEMS = await fetchItems();
+        document.getElementById("sortBy").value = "name_az"; // default sort
+        applyFiltersAndSort();
+      } catch (err) {
+        document.getElementById("items").textContent = "Error: " + (err.message || err);
+        document.getElementById("itemsCount").textContent = "";
+      }
+
+      document.getElementById("search").addEventListener("input", applyFiltersAndSort);
+      document.getElementById("rarityFilter").addEventListener("change", applyFiltersAndSort);
+      document.getElementById("sortBy").addEventListener("change", applyFiltersAndSort);
+    }
+
+    init();
   </script>
 </body>
 </html>
